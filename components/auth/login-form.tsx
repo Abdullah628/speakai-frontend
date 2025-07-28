@@ -1,7 +1,4 @@
 "use client";
-
-import type React from "react";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,18 +15,16 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Mic, Chrome, Mail, Lock, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { auth } from "@/lib/firebase";
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
 
-  const { signInWithGoogle, signInWithEmail } = useAuth();
+  const { login } = useAuth();
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,22 +46,10 @@ export function LoginForm() {
     setError("");
 
     try {
-      await signInWithEmail(formData.email, formData.password);
-      // 🔥 Get the ID token after successful login
-      const user = auth.currentUser;
-      if (user) {
-        const idToken = await user.getIdToken();
-
-        console.log("Firebase ID Token:", idToken); // You can send this to your backend
-        // await fetch("http://localhost:8000/api/protected", {
-        //   method: "GET",
-        //   headers: {
-        //     Authorization: `Bearer ${idToken}`,
-        //   },
-        // });
-        router.push("/dashboard");
-        // You can use idToken here if needed
-      }
+      await login(formData.email, formData.password);
+      // 🔥 Get the ID token after successful lo        
+      router.push("/dashboard");
+      
     } catch (error: any) {
       console.error("Sign in error:", error);
       if (error.code === "auth/user-not-found") {
@@ -99,18 +82,18 @@ export function LoginForm() {
   // };
 
 
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    try {
-      await signInWithGoogle(); // This will redirect OR popup
-      // ❌ DO NOT put router.push here for redirect flow!
-    } catch (error) {
-      console.error("Google sign in error:", error);
-      setError("Failed to sign in with Google");
-    } finally {
-      setIsGoogleLoading(false);
-    }
-};
+//   const handleGoogleSignIn = async () => {
+//     setIsGoogleLoading(true);
+//     try {
+//       await signInWithGoogle(); // This will redirect OR popup
+//       // ❌ DO NOT put router.push here for redirect flow!
+//     } catch (error) {
+//       console.error("Google sign in error:", error);
+//       setError("Failed to sign in with Google");
+//     } finally {
+//       setIsGoogleLoading(false);
+//     }
+// };
 
 
   return (
@@ -192,7 +175,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <Button
+        {/* <Button
           onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
           variant="outline"
@@ -201,7 +184,7 @@ export function LoginForm() {
         >
           <Chrome className="w-5 h-5 mr-2" />
           {isGoogleLoading ? "Signing in..." : "Continue with Google"}
-        </Button>
+        </Button> */}
 
         <div className="text-center text-sm text-gray-600">
           <p>

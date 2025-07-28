@@ -2,7 +2,9 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(req: NextRequest) {
   try {
-    const { transcript, originalText, userId } = await req.json()
+    const { transcript, originalText } = await req.json();
+    console.log("Received transcript:", transcript);
+    console.log("Received original text:", originalText);
 
     // This will connect to your FastAPI backend for speech analysis
     const response = await fetch(`${process.env.BACKEND_URL}/api/speech/analyze`, {
@@ -13,7 +15,6 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         transcript,
         original_text: originalText,
-        user_id: userId,
       }),
     })
 

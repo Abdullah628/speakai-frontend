@@ -9,15 +9,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/hooks/use-auth"
-import { useRouter } from "next/navigation"
-import { Mic, Chrome, Mail, User, Lock, AlertCircle, CheckCircle } from "lucide-react"
+import { Mic, Mail, User, Lock, AlertCircle, CheckCircle } from "lucide-react"
 import Link from "next/link"
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -25,8 +23,7 @@ export function RegisterForm() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  const { signInWithGoogle, signUpWithEmail } = useAuth()
-  const router = useRouter()
+  const { login, register } = useAuth()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -37,7 +34,7 @@ export function RegisterForm() {
   }
 
   const validateForm = () => {
-    if (!formData.name.trim()) {
+    if (!formData.username.trim()) {
       setError("Name is required")
       return false
     }
@@ -49,8 +46,8 @@ export function RegisterForm() {
       setError("Please enter a valid email address")
       return false
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters")
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters")
       return false
     }
     if (formData.password !== formData.confirmPassword) {
@@ -60,7 +57,7 @@ export function RegisterForm() {
     return true
   }
 
-  const handleEmailSignUp = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!validateForm()) return
 
@@ -68,9 +65,11 @@ export function RegisterForm() {
     setError("")
 
     try {
-      await signUpWithEmail(formData.email, formData.password, formData.name)
+      console.log("Registering user:", formData)
+      await register(formData.username, formData.email, formData.password )
+
       setSuccess("Registration successful! Please check your email to verify your account.")
-      setFormData({ name: "", email: "", password: "", confirmPassword: "" })
+      setFormData({ username: "", email: "", password: "", confirmPassword: "" })
     } catch (error: any) {
       console.error("Sign up error:", error)
       if (error.code === "auth/email-already-in-use") {
@@ -85,18 +84,18 @@ export function RegisterForm() {
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true)
-    try {
-      await signInWithGoogle()
-      router.push("/dashboard")
-    } catch (error) {
-      console.error("Google sign in error:", error)
-      setError("Failed to sign in with Google")
-    } finally {
-      setIsGoogleLoading(false)
-    }
-  }
+  // const handleGoogleSignIn = async () => {
+  //   setIsGoogleLoading(true)
+  //   try {
+  //     await signInWithGoogle()
+  //     router.push("/dashboard")
+  //   } catch (error) {
+  //     console.error("Google sign in error:", error)
+  //     setError("Failed to sign in with Google")
+  //   } finally {
+  //     setIsGoogleLoading(false)
+  //   }
+  // }
 
   return (
     <Card className="w-full max-w-md">
@@ -126,17 +125,17 @@ export function RegisterForm() {
           </Alert>
         )}
 
-        <form onSubmit={handleEmailSignUp} className="space-y-4">
+        <form onSubmit={handleSignUp} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="username">User Name</Label>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
-                placeholder="Enter your full name"
-                value={formData.name}
+                placeholder="Enter user name"
+                value={formData.username}
                 onChange={handleInputChange}
                 className="pl-10"
                 required
@@ -209,7 +208,7 @@ export function RegisterForm() {
           </div>
         </div>
 
-        <Button
+        {/* <Button
           onClick={handleGoogleSignIn}
           disabled={isGoogleLoading}
           variant="outline"
@@ -218,12 +217,12 @@ export function RegisterForm() {
         >
           <Chrome className="w-5 h-5 mr-2" />
           {isGoogleLoading ? "Signing in..." : "Continue with Google"}
-        </Button>
+        </Button> */}
 
         <div className="text-center text-sm text-gray-600">
           <p>
             Already have an account?{" "}
-            <Link href="/login" className="text-blue-600 font-medium hover:underline">
+            <Link href="auth/login" className="text-blue-600 font-medium hover:underline">
               Sign in here
             </Link>
           </p>

@@ -5,8 +5,7 @@ export async function POST(req: NextRequest) {
     const { message, userId } = await req.json()
 
     // This will connect to your FastAPI backend
-    console.log("bakcend url",process.env.BACKEND_URL );
-    console.log("console from route")
+  
     const response = await fetch(`${process.env.BACKEND_URL}/api/chat`, {
       method: "POST",
       headers: {

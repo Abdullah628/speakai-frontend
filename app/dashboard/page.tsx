@@ -32,6 +32,5 @@ export default function DashboardPage() {
   if (!user) {
     return null
   }
-
   return <Dashboard />
 }

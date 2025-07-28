@@ -5,26 +5,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import Cookies from 'js-cookie';
 import { MessageCircle, TrendingUp, Clock, Target, Award, Calendar, Mic, Settings, CreditCard } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import Link from "next/link"
 
 interface UserStats {
-  totalSessions: number
-  averageAccuracy: number
-  totalMinutes: number
-  currentStreak: number
+  display_name?: string
+  total_sessions: number
+  average_accuracy: number
+  total_minutes: number
+  current_streak: number
   level: string
   nextLevelProgress: number
 }
 
+
 export function Dashboard() {
-  const { user, signOut } = useAuth()
+  const { user, logout } = useAuth()
   const [stats, setStats] = useState<UserStats>({
-    totalSessions: 0,
-    averageAccuracy: 0,
-    totalMinutes: 0,
-    currentStreak: 0,
+
+    total_sessions: 0,
+    average_accuracy: 0,
+    total_minutes: 0,
+    current_streak: 0,
     level: "Beginner",
     nextLevelProgress: 0,
   })
@@ -34,10 +38,17 @@ export function Dashboard() {
     fetchUserStats()
   }, [])
 
+
   const fetchUserStats = async () => {
     try {
       // This would connect to your FastAPI backend
-      const response = await fetch(`/api/user/stats?userId=${user?.uid}`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/stats`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${Cookies.get('access_token')}`, // Assuming you have a token in user object
+        },
+      })
       if (response.ok) {
         const data = await response.json()
         setStats(data)
@@ -46,10 +57,10 @@ export function Dashboard() {
       console.error("Error fetching stats:", error)
       // Set mock data for demo
       setStats({
-        totalSessions: 12,
-        averageAccuracy: 85,
-        totalMinutes: 240,
-        currentStreak: 5,
+        total_sessions: 12,
+        average_accuracy: 85,
+        total_minutes: 240,
+        current_streak: 5,
         level: "Intermediate",
         nextLevelProgress: 65,
       })
@@ -62,6 +73,7 @@ export function Dashboard() {
     { name: "90% Accuracy", icon: Target, earned: false },
     { name: "Speed Speaker", icon: Mic, earned: false },
   ]
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -81,7 +93,7 @@ export function Dashboard() {
                 Upgrade
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={signOut}>
+            <Button variant="ghost" size="sm" onClick={logout}>
               Sign Out
             </Button>
           </div>
@@ -92,7 +104,7 @@ export function Dashboard() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.displayName?.split(" ")[0] || "Student"}!
+            Welcome back, {user?.display_name?.split(" ")[0] || "Student"}!
           </h2>
           <p className="text-gray-600">Ready to continue your English practice?</p>
         </div>
@@ -145,7 +157,7 @@ export function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">Total Sessions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stats.totalSessions}</div>
+              <div className="text-2xl font-bold text-gray-900">{stats.total_sessions}</div>
               <p className="text-xs text-gray-500">+2 from last week</p>
             </CardContent>
           </Card>
@@ -155,7 +167,7 @@ export function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">Average Accuracy</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stats.averageAccuracy}%</div>
+              <div className="text-2xl font-bold text-gray-900">{stats?.average_accuracy}%</div>
               <p className="text-xs text-green-600">+5% improvement</p>
             </CardContent>
           </Card>
@@ -165,7 +177,7 @@ export function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">Practice Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stats.totalMinutes}m</div>
+              <div className="text-2xl font-bold text-gray-900">{stats?.total_minutes}m</div>
               <p className="text-xs text-gray-500">This month</p>
             </CardContent>
           </Card>
@@ -175,7 +187,7 @@ export function Dashboard() {
               <CardTitle className="text-sm font-medium text-gray-600">Current Streak</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stats.currentStreak} days</div>
+              <div className="text-2xl font-bold text-gray-900">{stats?.current_streak} days</div>
               <p className="text-xs text-blue-600">Keep it up!</p>
             </CardContent>
           </Card>
@@ -197,7 +209,7 @@ export function Dashboard() {
                 </Badge>
                 <span className="text-sm text-gray-600">{stats.nextLevelProgress}% to next level</span>
               </div>
-              <Progress value={stats.nextLevelProgress} className="h-3" />
+              <Progress value={stats.nextLevelProgress || 65} className="h-3" />
               <p className="text-sm text-gray-600">Complete more practice sessions to reach the next level!</p>
             </CardContent>
           </Card>
