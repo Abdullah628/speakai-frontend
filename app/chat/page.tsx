@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
-import { ChatInterface } from "@/components/chat/chat-interface"
+import ChatInterface from "@/components/chat/chat-interface"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
 
 export default function ChatPage() {

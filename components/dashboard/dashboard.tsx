@@ -51,6 +51,7 @@ export function Dashboard() {
       })
       if (response.ok) {
         const data = await response.json()
+        console.log("Fetched user stats:", data)
         setStats(data)
       }
     } catch (error) {

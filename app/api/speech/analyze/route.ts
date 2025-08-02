@@ -1,16 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
+import Cookies from "js-cookie"
 
 export async function POST(req: NextRequest) {
   try {
     const { transcript, originalText } = await req.json();
     console.log("Received transcript:", transcript);
     console.log("Received original text:", originalText);
-
+    
     // This will connect to your FastAPI backend for speech analysis
-    const response = await fetch(`${process.env.BACKEND_URL}/api/speech/analyze`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/speech/analyze`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${Cookies.get("access_token")}`
       },
       body: JSON.stringify({
         transcript,

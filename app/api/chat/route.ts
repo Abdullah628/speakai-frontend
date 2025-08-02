@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import Cookies from "js-cookie"
 
 export async function POST(req: NextRequest) {
   try {
@@ -6,10 +7,11 @@ export async function POST(req: NextRequest) {
 
     // This will connect to your FastAPI backend
   
-    const response = await fetch(`${process.env.BACKEND_URL}/api/chat`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${Cookies.get("access_token")}`
       },
       body: JSON.stringify({
         message,

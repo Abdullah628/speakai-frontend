@@ -7,9 +7,17 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ["localhost"],
+    domains: ["localhost", "192.168.0.216"],
     unoptimized: true,
   },
-}
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://192.168.0.216:8000/api/:path*',
+      },
+    ];
+  },
+};
 
-export default nextConfig
+export default nextConfig;
