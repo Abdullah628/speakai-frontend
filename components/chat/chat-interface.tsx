@@ -9,9 +9,7 @@ import { Mic, Volume2, VolumeX, Home, User, Plus, Send, Type, X } from "lucide-r
 import { useAuth } from "@/hooks/use-auth"
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
 import { useSpeechSynthesis } from "@/hooks/use-speech-synthesis"
-import { ConfettiEffect } from "./components/confetti-effect"
 import Cookies from "js-cookie"
-import Link from "next/link"
 
 interface Message {
   id: string
@@ -21,6 +19,36 @@ interface Message {
   accuracy?: number
   corrections?: string[]
   isTyped?: boolean
+}
+
+// 🔥 Analytics functions - THIS IS NEW
+const updateUserAnalytics = async (accuracy: number, sessionMinutes = 1) => {
+  try {
+    console.log("🔄 Updating user analytics...", { accuracy, sessionMinutes })
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/update-analytics`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${Cookies.get("access_token")}`,
+      },
+      body: JSON.stringify({
+        accuracy,
+        sessionMinutes,
+        practiceType: "conversation",
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`Analytics update failed: ${response.status}`)
+    }
+
+    const result = await response.json()
+    console.log("✅ Analytics updated successfully:", result)
+    return result
+  } catch (error) {
+    console.error("❌ Failed to update analytics:", error)
+  }
 }
 
 export default function ChatInterface() {
@@ -40,7 +68,7 @@ export default function ChatInterface() {
 
   const { startListening, stopListening, transcript, isListening } = useSpeechRecognition()
   const { speak, stop: stopSpeaking, isSpeaking } = useSpeechSynthesis()
-  
+
   useEffect(() => {
     const greeting = "Hello! I'm your AI English tutor."
     setMessages([
@@ -101,7 +129,6 @@ export default function ChatInterface() {
     setIsRecording(true)
     setCurrentTranscript("")
     startListening()
-    
   }
 
   const handleStopRecording = () => {
@@ -113,7 +140,7 @@ export default function ChatInterface() {
 
   const handleSendVoiceMessage = async () => {
     if (!currentTranscript.trim()) return
-    setShowVoicePopup(false);
+    setShowVoicePopup(false)
     setIsRecording(false)
     setIsLoading(true)
     const userMessage: Message = {
@@ -130,9 +157,7 @@ export default function ChatInterface() {
       // const originalText = currentTranscript // In conversation mode, we can't predict what user should say
       const originalTextData = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/acc`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", 
-          Authorization: `Bearer ${Cookies.get("access_token")}`
-         },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${Cookies.get("access_token")}` },
         body: JSON.stringify({
           message: currentTranscript,
         }),
@@ -142,9 +167,7 @@ export default function ChatInterface() {
       // Analyze speech accuracy
       const speechAnalysis = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/speech/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" ,
-          Authorization: `Bearer ${Cookies.get("access_token")}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${Cookies.get("access_token")}` },
         body: JSON.stringify({
           transcript: currentTranscript, // What user actually said
           original_text: originalText.response, // What user was supposed to say (same in conversation mode)
@@ -163,12 +186,15 @@ export default function ChatInterface() {
         ),
       )
 
+      // 🔥 UPDATE ANALYTICS WITH ACCURACY SCORE - THIS IS NEW
+      if (analysisData.accuracy !== undefined) {
+        await updateUserAnalytics(analysisData.accuracy, 1)
+      }
+
       // Get AI response
       const chatResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", 
-          Authorization: `Bearer ${Cookies.get("access_token")}`
-         },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${Cookies.get("access_token")}` },
         body: JSON.stringify({
           message: currentTranscript,
         }),
@@ -252,6 +278,11 @@ export default function ChatInterface() {
         if (analysisData.accuracy > 80) {
           setShowConfetti(userMessage.id)
         }
+
+        // 🔥 UPDATE ANALYTICS FOR VOICE MESSAGES - THIS IS NEW
+        if (analysisData.accuracy !== undefined) {
+          await updateUserAnalytics(analysisData.accuracy, 1)
+        }
       }
       console.log("api endpoint: ", `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat`)
       // Get AI response
@@ -278,6 +309,11 @@ export default function ChatInterface() {
 
       setMessages((prev) => [...prev, aiMessage])
       speak(chatData.response)
+
+      // 🔥 UPDATE ANALYTICS FOR TYPED MESSAGES - THIS IS NEW
+      if (isTyped) {
+        await updateUserAnalytics(100, 1) // Typed messages get 100% accuracy
+      }
     } catch (error) {
       console.error("Error processing message:", error)
       const errorMessage: Message = {
@@ -324,7 +360,7 @@ export default function ChatInterface() {
               variant="ghost"
               size="sm"
               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 transition-all duration-200"
-              onClick={() => window.location.href = "/dashboard"}
+              onClick={() => (window.location.href = "/dashboard")}
             >
               <Home className="w-4 h-4 mr-2" />
               <span className="hidden sm:inline">Dashboard</span>
@@ -336,7 +372,7 @@ export default function ChatInterface() {
               onClick={handleNewChat}
               variant="outline"
               size="sm"
-              className="border-blue-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 text-xs sm:text-sm"
+              className="border-blue-200 text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 text-xs sm:text-sm bg-transparent"
             >
               <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               <span className="hidden sm:inline">New Chat</span>
@@ -413,9 +449,7 @@ export default function ChatInterface() {
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs text-blue-600 font-medium">Speech Accuracy</span>
                         <span
-                          className={`text-sm font-bold ${
-                            message.accuracy > 80 ? "text-green-600" : "text-amber-600"
-                          }`}
+                          className={`text-sm font-bold ${message.accuracy > 80 ? "text-green-600" : "text-amber-600"}`}
                         >
                           {message.accuracy}%
                         </span>
@@ -438,9 +472,7 @@ export default function ChatInterface() {
                   )}
 
                   {/* Timestamp */}
-                  <div
-                    className={`mt-1 text-xs text-gray-500 ${message.type === "user" ? "text-right" : "text-left"}`}
-                  >
+                  <div className={`mt-1 text-xs text-gray-500 ${message.type === "user" ? "text-right" : "text-left"}`}>
                     {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </div>
                 </div>
@@ -469,8 +501,8 @@ export default function ChatInterface() {
                 variant={inputMode === "voice" ? "default" : "ghost"}
                 size="sm"
                 className={`text-xs transition-all duration-200 ${
-                  inputMode === "voice" 
-                    ? "bg-blue-500 text-white hover:bg-blue-600" 
+                  inputMode === "voice"
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
                     : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                 }`}
               >
@@ -482,8 +514,8 @@ export default function ChatInterface() {
                 variant={inputMode === "text" ? "default" : "ghost"}
                 size="sm"
                 className={`text-xs transition-all duration-200 ${
-                  inputMode === "text" 
-                    ? "bg-blue-500 text-white hover:bg-blue-600" 
+                  inputMode === "text"
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
                     : "text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                 }`}
               >
@@ -570,9 +602,9 @@ export default function ChatInterface() {
             <div className="flex flex-col items-center space-y-4">
               {/* Timer */}
               <div className={`text-3xl font-bold ${recordingTimer >= 15 ? "text-red-500" : "text-blue-600"}`}>
-                0:{recordingTimer.toString().padStart(2, '0')}
+                0:{recordingTimer.toString().padStart(2, "0")}
               </div>
-              
+
               {/* Recording indicator */}
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -592,7 +624,7 @@ export default function ChatInterface() {
                   onClick={handleStopRecording}
                   variant="outline"
                   size="lg"
-                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-full w-14 h-14 p-0"
+                  className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 rounded-full w-14 h-14 p-0 bg-transparent"
                 >
                   <X className="w-6 h-6" />
                 </Button>
