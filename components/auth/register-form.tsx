@@ -1,61 +1,69 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth } from "@/hooks/use-auth"
-import { Mic, Mail, User, Lock, AlertCircle, CheckCircle } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/hooks/use-auth";
+import { Mic, Mail, User, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import Link from "next/link";
 
 export function RegisterForm() {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const { login, register } = useAuth()
+  const { login, register } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
-    }))
-    setError("")
-  }
+    }));
+    setError("");
+  };
 
   const validateForm = () => {
     if (!formData.username.trim()) {
-      setError("Name is required")
-      return false
+      setError("Name is required");
+      return false;
     }
     if (!formData.email.trim()) {
-      setError("Email is required")
-      return false
+      setError("Email is required");
+      return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Please enter a valid email address")
-      return false
+      setError("Please enter a valid email address");
+      return false;
     }
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return false
+      setError("Password must be at least 8 characters");
+      return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match")
-      return false
+      setError("Passwords do not match");
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,10 +73,13 @@ export function RegisterForm() {
     setError("")
 
     try {
-      console.log("Registering user:", formData)
-      await register(formData.username, formData.email, formData.password )
-
-      setSuccess("Registration successful! Please check your email to verify your account.")
+      const success = await register(formData.username, formData.email, formData.password )
+      if (!success) {
+        setError("Failed to create account. Please try again.")
+        return
+      }
+      // setSuccess("Registration successful! Please check your email to verify your account.")
+      setSuccess("Registration successful! Please Sign in with your email and password.")
       setFormData({ username: "", email: "", password: "", confirmPassword: "" })
     } catch (error: any) {
       console.error("Sign up error:", error)
@@ -107,7 +118,9 @@ export function RegisterForm() {
           <span className="text-2xl font-bold text-gray-900">SpeakAI</span>
         </div>
         <CardTitle className="text-2xl">Create Account</CardTitle>
-        <CardDescription>Start your English practice journey today</CardDescription>
+        <CardDescription>
+          Start your English practice journey today
+        </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">
@@ -121,7 +134,9 @@ export function RegisterForm() {
         {success && (
           <Alert className="border-green-200 bg-green-50">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">{success}</AlertDescription>
+            <AlertDescription className="text-green-800">
+              {success}
+            </AlertDescription>
           </Alert>
         )}
 
@@ -168,7 +183,7 @@ export function RegisterForm() {
                 id="password"
                 name="password"
                 type="password"
-                placeholder="Create a password (min. 6 characters)"
+                placeholder="(min. 8 characters with 1 uppercase)"
                 value={formData.password}
                 onChange={handleInputChange}
                 className="pl-10"
@@ -194,7 +209,12 @@ export function RegisterForm() {
             </div>
           </div>
 
-          <Button type="submit" disabled={isLoading} className="w-full" size="lg">
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full"
+            size="lg"
+          >
             {isLoading ? "Creating Account..." : "Create Account"}
           </Button>
         </form>
@@ -204,7 +224,9 @@ export function RegisterForm() {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+            <span className="bg-background px-2 text-muted-foreground">
+              Or continue with
+            </span>
           </div>
         </div>
 
@@ -222,7 +244,10 @@ export function RegisterForm() {
         <div className="text-center text-sm text-gray-600">
           <p>
             Already have an account?{" "}
-            <Link href="auth/login" className="text-blue-600 font-medium hover:underline">
+            <Link
+              href="auth/login"
+              className="text-blue-600 font-medium hover:underline"
+            >
               Sign in here
             </Link>
           </p>
@@ -235,5 +260,5 @@ export function RegisterForm() {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

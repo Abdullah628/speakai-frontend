@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const token = Cookies.get('access_token');
     if (token) {
-      fetchUser();
+      // fetchUser();
     } else {
       setLoading(false);
     }
@@ -112,11 +112,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {
       await axios.post('/api/user/register', { username, email, password });
+      console.log("Registration successful!");
       toast.success('Registration successful! Please login.');
       return true;
     } catch (error: any) {
       const errorMessage = error.response?.data?.detail || 'Registration failed';
-      toast.error(errorMessage);
+      console.log("error message", errorMessage[0].msg);
+      if(errorMessage[0]?.msg) {
+        toast.error(errorMessage[0].msg);
+      }else {
+        toast.error(errorMessage);
+      }
       return false;
     }
   };
