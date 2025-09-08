@@ -51,6 +51,9 @@ const updateUserAnalytics = async (accuracy: number, sessionMinutes = 1) => {
   }
 }
 
+
+
+
 export default function ChatInterface() {
   const { user } = useAuth()
   const [messages, setMessages] = useState<Message[]>([])
@@ -69,6 +72,33 @@ export default function ChatInterface() {
   const { startListening, stopListening, transcript, isListening } = useSpeechRecognition()
   const { speak, stop: stopSpeaking, isSpeaking } = useSpeechSynthesis()
 
+   const handleSpeak = async (text:string) => {
+    setIsLoading(true);
+    console.log("text", text);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tts/stream`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!res.ok) throw new Error("TTS request failed");
+
+      // Convert response to a blob (wav file)
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      // Play in browser
+      const audio = new Audio(url);
+      audio.play();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     const greeting = "Hello! I'm your AI English tutor."
     setMessages([
@@ -79,7 +109,7 @@ export default function ChatInterface() {
         timestamp: new Date(),
       },
     ])
-    speak(greeting)
+    handleSpeak(greeting)
   }, [])
 
   useEffect(() => {
@@ -121,6 +151,8 @@ export default function ChatInterface() {
     }
   }, [isRecording])
 
+
+ 
   const handleStartRecording = () => {
     if (isAISpeaking) {
       stopSpeaking()
@@ -174,7 +206,7 @@ export default function ChatInterface() {
       })
 
       const analysisData = await speechAnalysis.json()
-      console.log("Speech analysis data:", analysisData)
+      // console.log("Speech analysis data:", analysisData)
 
       // Update user message with accuracy
       setMessages((prev) =>
@@ -209,7 +241,7 @@ export default function ChatInterface() {
       }
 
       setMessages((prev) => [...prev, aiMessage])
-      speak(chatData.response)
+      handleSpeak(chatData.response)
     } catch (error) {
       console.error("Error processing message:", error)
       const errorMessage: Message = {

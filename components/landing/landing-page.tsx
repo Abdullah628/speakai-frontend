@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/use-auth"
 export function LandingPage() {
   const { user } = useAuth()
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
-  console.log("user", user)
+
   useEffect(() => {
     callRenderApi();
     console.log("Render API called");
