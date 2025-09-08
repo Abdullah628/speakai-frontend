@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -11,6 +11,11 @@ import { useAuth } from "@/hooks/use-auth"
 export function LandingPage() {
   const { user } = useAuth()
   const [isVideoPlaying, setIsVideoPlaying] = useState(false)
+  console.log("user", user)
+  useEffect(() => {
+    callRenderApi();
+    console.log("Render API called");
+  }, []);
 
   const features = [
     {
@@ -35,6 +40,8 @@ export function LandingPage() {
     },
   ]
 
+  
+
   const testimonials = [
     {
       name: "Sarah Johnson",
@@ -55,6 +62,10 @@ export function LandingPage() {
       rating: 5,
     },
   ]
+
+  const callRenderApi = async ()=>{
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}`, {method: 'GET'})
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">

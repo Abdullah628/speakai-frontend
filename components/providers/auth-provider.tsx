@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const token = Cookies.get('access_token');
     if (token) {
-      // fetchUser();
+      fetchUser();
     } else {
       setLoading(false);
     }
@@ -95,8 +95,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await axios.post('/api/user/login', { email, password });
       const { access_token } = response.data;
-      console.log("Login successful, token:", access_token);
-      toast.success('Login successful!');
       Cookies.set('access_token', access_token, { expires: 7 }); // 7 days
       await fetchUser();
       console.log("seted user");

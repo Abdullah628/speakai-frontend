@@ -152,8 +152,7 @@ export default function ChatInterface() {
     setMessages((prev) => [...prev, userMessage])
 
     try {
-      // For conversation mode, we analyze grammar/fluency using the same text
-      // For pronunciation practice, we would need a different approach
+     
       // const originalText = currentTranscript // In conversation mode, we can't predict what user should say
       const originalTextData = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/chat/acc`, {
         method: "POST",
